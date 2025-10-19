@@ -7,7 +7,13 @@ enum Opcode {
     SUB,
     LW,
     SW,
-    JMP
+    JMP,
+    BEQ,
+    // Custom Sparse Extensions
+    LNZ,    // Load Non-Zero
+    ZMUL,   // Zero-Skip Multiply
+    VLOAD,  // Vector Load
+    BZERO   // Branch if Zero
 };
 
 #endif // INSTRUCTION_H
