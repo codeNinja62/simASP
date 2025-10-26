@@ -17,7 +17,22 @@ int parseRegister(string reg_str) {
     reg_str = trim(reg_str);
     if (reg_str.empty()) return 0;
     if (reg_str.back() == ',') reg_str.pop_back();
+    
+    // Handle x# format
     if (reg_str[0] == 'x') return stoi(reg_str.substr(1));
+    
+    // Handle ABI names
+    if (reg_str == "zero") return 0;
+    if (reg_str == "ra") return 1;
+    if (reg_str == "sp") return 2;
+    if (reg_str == "t0") return 5;
+    if (reg_str == "t1") return 6;
+    if (reg_str == "t2") return 7;
+    if (reg_str == "s0") return 8;
+    if (reg_str == "s1") return 9;
+    if (reg_str == "a0") return 10;
+    if (reg_str == "a1") return 11;
+    
     return 0;
 }
 
@@ -45,10 +60,9 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
         current_pc++;
     }
 
-    // Pass 2: Parse instructions
+    // Pass 2: Parse
     file.clear();
     file.seekg(0);
-    current_pc = 0;
     
     while (getline(file, line)) {
         size_t comment_pos = line.find('#');
@@ -64,7 +78,6 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
         iss >> opcode;
         transform(opcode.begin(), opcode.end(), opcode.begin(), ::toupper);
         
-        // R-Type: ADD rd, rs1, rs2
         if (opcode == "ADD" || opcode == "SUB") {
             string rd, rs1, rs2;
             iss >> rd >> rs1 >> rs2;
@@ -73,10 +86,8 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
             instr.rs1 = parseRegister(rs1);
             instr.rs2 = parseRegister(rs2);
         }
-        // I-Type will be added
         
         program.push_back(instr);
-        current_pc++;
     }
 
     return program;
