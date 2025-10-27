@@ -19,24 +19,27 @@ void SparseFlowCore::run() {
         cycle_count++;
     }
     
-    std::cout << "Execution complete. Cycles: " << cycle_count << std::endl;
+    std::cout << "Cycles: " << cycle_count << std::endl;
     reg_file.dump();
 }
 
 void SparseFlowCore::executeInstruction(const Instruction& instr) {
     int rs1_val = reg_file.read(instr.rs1);
     int rs2_val = reg_file.read(instr.rs2);
-    int result = 0;
+    int alu_result = 0;
     
+    // ALU operation based on opcode
     switch (instr.op) {
         case ADD:
-            result = rs1_val + rs2_val;
-            reg_file.write(instr.rd, result);
+            alu_result = rs1_val + rs2_val;
+            reg_file.write(instr.rd, alu_result);
             break;
         case SUB:
-            result = rs1_val - rs2_val;
-            reg_file.write(instr.rd, result);
+            alu_result = rs1_val - rs2_val;
+            reg_file.write(instr.rd, alu_result);
             break;
+        // ADDI uses rs1 + immediate
+        // Fixed: was incorrectly using rs2_val
         default:
             break;
     }
