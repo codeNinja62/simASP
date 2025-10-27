@@ -14,12 +14,8 @@ void SparseFlowCore::writeDataMemory(int addr, int val) {
 
 void SparseFlowCore::run() {
     while (!halted) {
-        // Fetch
         Instruction instr = memory.fetch(pc);
-        
-        // Decode & Execute
         executeInstruction(instr);
-        
         cycle_count++;
     }
     
@@ -28,6 +24,22 @@ void SparseFlowCore::run() {
 }
 
 void SparseFlowCore::executeInstruction(const Instruction& instr) {
-    // TODO: Implement
+    int rs1_val = reg_file.read(instr.rs1);
+    int rs2_val = reg_file.read(instr.rs2);
+    int result = 0;
+    
+    switch (instr.op) {
+        case ADD:
+            result = rs1_val + rs2_val;
+            reg_file.write(instr.rd, result);
+            break;
+        case SUB:
+            result = rs1_val - rs2_val;
+            reg_file.write(instr.rd, result);
+            break;
+        default:
+            break;
+    }
+    
     pc++;
 }
