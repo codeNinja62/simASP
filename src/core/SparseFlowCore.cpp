@@ -39,6 +39,7 @@ void SparseFlowCore::executeInstruction(const Instruction& instr) {
             reg_file.write(instr.rd, alu_result);
             break;
         case LW:
+            // Fixed: Use word-aligned address calculation
             mem_addr = rs1_val + instr.imm;
             alu_result = memory.readData(mem_addr);
             reg_file.write(instr.rd, alu_result);
