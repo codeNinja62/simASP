@@ -33,24 +33,33 @@ void SparseFlowCore::executeInstruction(const Instruction& instr) {
         case ADD:
             alu_result = rs1_val + rs2_val;
             reg_file.write(instr.rd, alu_result);
+            pc++;
             break;
         case SUB:
             alu_result = rs1_val - rs2_val;
             reg_file.write(instr.rd, alu_result);
+            pc++;
             break;
         case LW:
-            // Fixed: Use word-aligned address calculation
             mem_addr = rs1_val + instr.imm;
             alu_result = memory.readData(mem_addr);
             reg_file.write(instr.rd, alu_result);
+            pc++;
             break;
         case SW:
             mem_addr = rs1_val + instr.imm;
             memory.writeData(mem_addr, rs2_val);
+            pc++;
+            break;
+        case BEQ:
+            if (rs1_val == rs2_val) {
+                pc = pc + instr.imm;  // Branch taken
+            } else {
+                pc++;  // Branch not taken
+            }
             break;
         default:
+            pc++;
             break;
     }
-    
-    pc++;
 }
