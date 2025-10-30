@@ -18,10 +18,8 @@ int parseRegister(string reg_str) {
     if (reg_str.empty()) return 0;
     if (reg_str.back() == ',') reg_str.pop_back();
     
-    // Handle x# format
     if (reg_str[0] == 'x') return stoi(reg_str.substr(1));
     
-    // Handle ABI names
     if (reg_str == "zero") return 0;
     if (reg_str == "ra") return 1;
     if (reg_str == "sp") return 2;
@@ -63,6 +61,7 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
     // Pass 2: Parse
     file.clear();
     file.seekg(0);
+    current_pc = 0;
     
     while (getline(file, line)) {
         size_t comment_pos = line.find('#');
@@ -85,9 +84,20 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
             instr.rd = parseRegister(rd);
             instr.rs1 = parseRegister(rs1);
             instr.rs2 = parseRegister(rs2);
+        } else if (opcode == "BEQ") {
+            string rs1, rs2, label;
+            iss >> rs1 >> rs2 >> label;
+            instr.op = BEQ;
+            instr.rs1 = parseRegister(rs1);
+            instr.rs2 = parseRegister(rs2);
+            // Fixed: Calculate PC-relative offset correctly
+            if (label_map.count(label)) {
+                instr.imm = label_map[label] - current_pc;
+            }
         }
         
         program.push_back(instr);
+        current_pc++;
     }
 
     return program;
