@@ -6,7 +6,6 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    // Argument parsing
     string filename = "test_program.asm";
     bool single_cycle = false;
     
@@ -19,12 +18,21 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // Initialize components
     SparseFlowCore core;
     Loader loader;
     
     cout << "SparseFlow Simulator" << endl;
     cout << "Loading: " << filename << endl;
+    
+    vector<Instruction> program = loader.loadFromFile(filename);
+    
+    if (program.empty()) {
+        cout << "Error: Program is empty or file not found." << endl;
+        return 1;
+    }
+    
+    core.loadProgram(program);
+    core.run();
     
     return 0;
 }
