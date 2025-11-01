@@ -6,17 +6,24 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    cout << "SparseFlow Simulator" << endl;
+    // Argument parsing
+    string filename = "test_program.asm";
+    bool single_cycle = false;
     
-    if (argc < 2) {
-        cout << "Usage: simulator <program.asm>" << endl;
-        return 1;
+    for (int i = 1; i < argc; ++i) {
+        string arg = argv[i];
+        if (arg == "--single-cycle") {
+            single_cycle = true;
+        } else {
+            filename = arg;
+        }
     }
     
+    // Initialize components
     SparseFlowCore core;
     Loader loader;
     
-    string filename = argv[1];
+    cout << "SparseFlow Simulator" << endl;
     cout << "Loading: " << filename << endl;
     
     return 0;
