@@ -53,10 +53,16 @@ void SparseFlowCore::executeInstruction(const Instruction& instr) {
             break;
         case BEQ:
             if (rs1_val == rs2_val) {
-                pc = pc + instr.imm;  // Branch taken
+                pc = pc + instr.imm;
             } else {
-                pc++;  // Branch not taken
+                pc++;
             }
+            break;
+        case JMP:
+            pc = pc + instr.imm;  // Unconditional jump
+            break;
+        case JR:
+            pc = rs1_val;  // Jump to address in register
             break;
         default:
             pc++;
