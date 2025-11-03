@@ -11,19 +11,17 @@ Cache::Cache(int size_bytes, int block_size)
 }
 
 bool Cache::access(int addr) {
-    // Direct-mapped cache
-    // TODO: Implement tag/index calculation
+    // Fixed: Correct tag/index calculation for direct-mapped cache
     int index = (addr / block_size) % num_lines;
     int tag = addr / (block_size * num_lines);
     
     if (lines[index].valid && lines[index].tag == tag) {
         hits++;
-        return true;  // Hit
+        return true;
     } else {
         misses++;
-        // Load block into cache
         lines[index].valid = true;
         lines[index].tag = tag;
-        return false;  // Miss
+        return false;
     }
 }
