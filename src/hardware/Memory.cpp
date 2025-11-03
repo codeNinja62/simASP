@@ -1,6 +1,6 @@
 #include "Memory.h"
 
-Memory::Memory() : data_mem(1024, 0) {
+Memory::Memory() : data_mem(1024, 0), cache() {
 }
 
 void Memory::loadProgram(const std::vector<Instruction>& program) {
@@ -13,6 +13,11 @@ Instruction Memory::fetch(int pc) {
     }
     Instruction nop;
     return nop;
+}
+
+int Memory::requestAccess(int addr) {
+    bool hit = cache.access(addr);
+    return hit ? HIT_LATENCY : MISS_LATENCY;
 }
 
 int Memory::readData(int addr) {
