@@ -65,14 +65,23 @@ void SparseFlowCore::executeInstruction(const Instruction& instr) {
             pc = rs1_val;
             break;
         case LNZ: {
-            // Load Non-Zero: Skip zeros automatically
             mem_addr = rs1_val + instr.imm;
             int value = memory.readData(mem_addr);
             if (value != 0) {
                 reg_file.write(instr.rd, value);
             }
-            // Auto-increment source pointer
             reg_file.write(instr.rs1, rs1_val + 1);
+            pc++;
+            break;
+        }
+        case ZMUL: {
+            // Zero-Skip Multiply: Skip if either operand is zero
+            if (rs1_val == 0 || rs2_val == 0) {
+                reg_file.write(instr.rd, 0);  // Result is 0, skip multiply
+            } else {
+                alu_result = rs1_val * rs2_val;
+                reg_file.write(instr.rd, alu_result);
+            }
             pc++;
             break;
         }
