@@ -1,7 +1,8 @@
 #include "SparseFlowCore.h"
 #include <iostream>
 
-SparseFlowCore::SparseFlowCore() : pc(0), cycle_count(0), halted(false), single_cycle_mode(false) {
+SparseFlowCore::SparseFlowCore() 
+    : pc(0), cycle_count(0), halted(false), single_cycle_mode(false), stall_pipeline(false) {
 }
 
 void SparseFlowCore::loadProgram(const std::vector<Instruction>& prog) {
@@ -14,8 +15,13 @@ void SparseFlowCore::writeDataMemory(int addr, int val) {
 
 void SparseFlowCore::run() {
     while (!halted) {
-        Instruction instr = memory.fetch(pc);
-        executeInstruction(instr);
+        // Pipeline stages in reverse order (WB -> IF)
+        stageWriteback();
+        stageMemory();
+        stageExecute();
+        stageDecode();
+        stageFetch();
+        
         cycle_count++;
     }
     
@@ -23,73 +29,22 @@ void SparseFlowCore::run() {
     reg_file.dump();
 }
 
-void SparseFlowCore::executeInstruction(const Instruction& instr) {
-    int rs1_val = reg_file.read(instr.rs1);
-    int rs2_val = reg_file.read(instr.rs2);
-    int alu_result = 0;
-    int mem_addr = 0;
-    
-    switch (instr.op) {
-        case ADD:
-            alu_result = rs1_val + rs2_val;
-            reg_file.write(instr.rd, alu_result);
-            pc++;
-            break;
-        case SUB:
-            alu_result = rs1_val - rs2_val;
-            reg_file.write(instr.rd, alu_result);
-            pc++;
-            break;
-        case LW:
-            mem_addr = rs1_val + instr.imm;
-            alu_result = memory.readData(mem_addr);
-            reg_file.write(instr.rd, alu_result);
-            pc++;
-            break;
-        case SW:
-            mem_addr = rs1_val + instr.imm;
-            memory.writeData(mem_addr, rs2_val);
-            pc++;
-            break;
-        case BEQ:
-            if (rs1_val == rs2_val) {
-                pc = pc + instr.imm;
-            } else {
-                pc++;
-            }
-            break;
-        case JMP:
-            pc = pc + instr.imm;
-            break;
-        case JR:
-            pc = rs1_val;
-            break;
-        case LNZ: {
-            mem_addr = rs1_val + instr.imm;
-            int value = memory.readData(mem_addr);
-            if (value != 0) {
-                reg_file.write(instr.rd, value);
-            }
-            reg_file.write(instr.rs1, rs1_val + 1);
-            pc++;
-            break;
-        }
-        case ZMUL: {
-            // Zero-Skip Multiply: Skip if either operand is zero
-            if (rs1_val == 0 || rs2_val == 0) {
-                reg_file.write(instr.rd, 0);  // Result is 0, skip multiply
-            } else {
-                alu_result = rs1_val * rs2_val;
-                reg_file.write(instr.rd, alu_result);
-            }
-            pc++;
-            break;
-        }
-        case HALT:
-            halted = true;
-            break;
-        default:
-            pc++;
-            break;
-    }
+void SparseFlowCore::stageFetch() {
+    // TODO: Implement
+}
+
+void SparseFlowCore::stageDecode() {
+    // TODO: Implement
+}
+
+void SparseFlowCore::stageExecute() {
+    // TODO: Implement
+}
+
+void SparseFlowCore::stageMemory() {
+    // TODO: Implement
+}
+
+void SparseFlowCore::stageWriteback() {
+    // TODO: Implement
 }
