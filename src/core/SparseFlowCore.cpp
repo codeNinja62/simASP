@@ -15,7 +15,6 @@ void SparseFlowCore::writeDataMemory(int addr, int val) {
 
 void SparseFlowCore::run() {
     while (!halted) {
-        // Pipeline stages in reverse order (WB -> IF)
         stageWriteback();
         stageMemory();
         stageExecute();
@@ -30,7 +29,15 @@ void SparseFlowCore::run() {
 }
 
 void SparseFlowCore::stageFetch() {
-    // TODO: Implement
+    if (!stall_pipeline) {
+        if_id.instr = memory.fetch(pc);
+        if_id.pc = pc;
+        if_id.valid = true;
+        
+        // Simple prediction: assume not taken for now
+        if_id.predicted_taken = false;
+        pc++;
+    }
 }
 
 void SparseFlowCore::stageDecode() {
