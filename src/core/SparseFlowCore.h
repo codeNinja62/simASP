@@ -4,6 +4,7 @@
 #include <vector>
 #include "../hardware/RegisterFile.h"
 #include "../hardware/Memory.h"
+#include "PipelineRegisters.h"
 
 class SparseFlowCore {
 private:
@@ -15,7 +16,18 @@ private:
     RegisterFile reg_file;
     Memory memory;
 
-    void executeInstruction(const Instruction& instr);
+    // Pipeline Registers
+    IF_ID_Reg if_id;
+    ID_EX_Reg id_ex;
+    EX_MEM_Reg ex_mem;
+    MEM_WB_Reg mem_wb;
+
+    // Pipeline stage methods
+    void stageFetch();
+    void stageDecode();
+    void stageExecute();
+    void stageMemory();
+    void stageWriteback();
 
 public:
     SparseFlowCore();
