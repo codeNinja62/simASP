@@ -4,6 +4,7 @@
 #include <vector>
 #include "../hardware/RegisterFile.h"
 #include "../hardware/Memory.h"
+#include "../hardware/BranchPredictor.h"
 #include "PipelineRegisters.h"
 
 class SparseFlowCore {
@@ -12,9 +13,11 @@ private:
     long long cycle_count;
     bool halted;
     bool single_cycle_mode;
+    bool stall_pipeline;
     
     RegisterFile reg_file;
     Memory memory;
+    BranchPredictor branch_predictor;
 
     // Pipeline Registers
     IF_ID_Reg if_id;
