@@ -22,13 +22,6 @@ void SparseFlowCore::run() {
         stageFetch();
         
         cycle_count++;
-        
-        // DEBUG: Print pipeline state
-        std::cout << "Cycle " << cycle_count << ": ";
-        std::cout << "IF_ID.valid=" << if_id.valid;
-        std::cout << " ID_EX.valid=" << id_ex.valid;
-        std::cout << " EX_MEM.valid=" << ex_mem.valid;
-        std::cout << " MEM_WB.valid=" << mem_wb.valid << std::endl;
     }
     
     std::cout << "Cycles: " << cycle_count << std::endl;
@@ -46,6 +39,7 @@ void SparseFlowCore::stageFetch() {
 }
 
 void SparseFlowCore::stageDecode() {
+    // Fixed: Properly copy instruction to next stage
     if (if_id.valid) {
         id_ex.instr = if_id.instr;
         id_ex.pc = if_id.pc;
@@ -53,6 +47,7 @@ void SparseFlowCore::stageDecode() {
         id_ex.rs2_val = reg_file.read(if_id.instr.rs2);
         id_ex.imm = if_id.instr.imm;
         id_ex.rd = if_id.instr.rd;
+        id_ex.predicted_taken = if_id.predicted_taken;
         id_ex.valid = true;
     } else {
         id_ex.valid = false;
@@ -60,11 +55,48 @@ void SparseFlowCore::stageDecode() {
 }
 
 void SparseFlowCore::stageExecute() {
-    // TODO
+    if (id_ex.valid) {
+        ex_mem.instr = id_ex.instr;
+        ex_mem.rd = id_ex.rd;
+        ex_mem.write_data = id_ex.rs2_val;
+        
+        // ALU operation
+        switch (id_ex.instr.op) {
+            case ADD:
+                ex_mem.alu_result = id_ex.rs1_val + id_ex.rs2_val;
+                break;
+            case SUB:
+                ex_mem.alu_result = id_ex.rs1_val - id_ex.rs2_val;
+                break;
+            case LW:
+            case SW:
+                ex_mem.alu_result = id_ex.rs1_val + id_ex.imm;
+                break;
+            default:
+                ex_mem.alu_result = 0;
+                break;
+        }
+        ex_mem.valid = true;
+    } else {
+        ex_mem.valid = false;
+    }
 }
 
 void SparseFlowCore::stageMemory() {
-    // TODO
+    if (ex_mem.valid) {
+        mem_wb.instr = ex_mem.instr;
+        mem_wb.rd = ex_mem.rd;
+        mem_wb.alu_result = ex_mem.alu_result;
+        
+        if (ex_mem.instr.op == LW) {
+            mem_wb.mem_data = memory.readData(ex_mem.alu_result);
+        } else if (ex_mem.instr.op == SW) {
+            memory.writeData(ex_mem.alu_result, ex_mem.write_data);
+        }
+        mem_wb.valid = true;
+    } else {
+        mem_wb.valid = false;
+    }
 }
 
 void SparseFlowCore::stageWriteback() {
