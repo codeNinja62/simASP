@@ -22,6 +22,13 @@ void SparseFlowCore::run() {
         stageFetch();
         
         cycle_count++;
+        
+        // DEBUG: Print pipeline state
+        std::cout << "Cycle " << cycle_count << ": ";
+        std::cout << "IF_ID.valid=" << if_id.valid;
+        std::cout << " ID_EX.valid=" << id_ex.valid;
+        std::cout << " EX_MEM.valid=" << ex_mem.valid;
+        std::cout << " MEM_WB.valid=" << mem_wb.valid << std::endl;
     }
     
     std::cout << "Cycles: " << cycle_count << std::endl;
@@ -39,7 +46,6 @@ void SparseFlowCore::stageFetch() {
 }
 
 void SparseFlowCore::stageDecode() {
-    // Propagate to ID/EX
     if (if_id.valid) {
         id_ex.instr = if_id.instr;
         id_ex.pc = if_id.pc;
@@ -54,11 +60,11 @@ void SparseFlowCore::stageDecode() {
 }
 
 void SparseFlowCore::stageExecute() {
-    // TODO: Implement ALU
+    // TODO
 }
 
 void SparseFlowCore::stageMemory() {
-    // TODO: Implement memory access
+    // TODO
 }
 
 void SparseFlowCore::stageWriteback() {
