@@ -33,25 +33,44 @@ void SparseFlowCore::stageFetch() {
         if_id.instr = memory.fetch(pc);
         if_id.pc = pc;
         if_id.valid = true;
-        
-        // Simple prediction: assume not taken for now
         if_id.predicted_taken = false;
         pc++;
     }
 }
 
 void SparseFlowCore::stageDecode() {
-    // TODO: Implement
+    // Propagate to ID/EX
+    if (if_id.valid) {
+        id_ex.instr = if_id.instr;
+        id_ex.pc = if_id.pc;
+        id_ex.rs1_val = reg_file.read(if_id.instr.rs1);
+        id_ex.rs2_val = reg_file.read(if_id.instr.rs2);
+        id_ex.imm = if_id.instr.imm;
+        id_ex.rd = if_id.instr.rd;
+        id_ex.valid = true;
+    } else {
+        id_ex.valid = false;
+    }
 }
 
 void SparseFlowCore::stageExecute() {
-    // TODO: Implement
+    // TODO: Implement ALU
 }
 
 void SparseFlowCore::stageMemory() {
-    // TODO: Implement
+    // TODO: Implement memory access
 }
 
 void SparseFlowCore::stageWriteback() {
-    // TODO: Implement
+    if (mem_wb.valid && mem_wb.rd != 0) {
+        if (mem_wb.instr.op == LW || mem_wb.instr.op == LNZ) {
+            reg_file.write(mem_wb.rd, mem_wb.mem_data);
+        } else {
+            reg_file.write(mem_wb.rd, mem_wb.alu_result);
+        }
+    }
+    
+    if (mem_wb.instr.op == HALT && mem_wb.valid) {
+        halted = true;
+    }
 }
