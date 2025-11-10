@@ -39,18 +39,35 @@ void SparseFlowCore::stageFetch() {
 }
 
 void SparseFlowCore::stageDecode() {
-    // Fixed: Properly copy instruction to next stage
-    if (if_id.valid) {
-        id_ex.instr = if_id.instr;
-        id_ex.pc = if_id.pc;
-        id_ex.rs1_val = reg_file.read(if_id.instr.rs1);
-        id_ex.rs2_val = reg_file.read(if_id.instr.rs2);
-        id_ex.imm = if_id.instr.imm;
-        id_ex.rd = if_id.instr.rd;
-        id_ex.predicted_taken = if_id.predicted_taken;
-        id_ex.valid = true;
-    } else {
+    // Load-Use Hazard Detection
+    bool load_use_hazard = false;
+    
+    if (id_ex.valid && (id_ex.instr.op == LW || id_ex.instr.op == LNZ)) {
+        // Check if ID stage needs the value being loaded
+        if (id_ex.rd == if_id.instr.rs1 || id_ex.rd == if_id.instr.rs2) {
+            load_use_hazard = true;
+        }
+    }
+    
+    if (load_use_hazard) {
+        // Stall: Insert bubble into ID/EX
+        stall_pipeline = true;
         id_ex.valid = false;
+    } else {
+        stall_pipeline = false;
+        
+        if (if_id.valid) {
+            id_ex.instr = if_id.instr;
+            id_ex.pc = if_id.pc;
+            id_ex.rs1_val = reg_file.read(if_id.instr.rs1);
+            id_ex.rs2_val = reg_file.read(if_id.instr.rs2);
+            id_ex.imm = if_id.instr.imm;
+            id_ex.rd = if_id.instr.rd;
+            id_ex.predicted_taken = if_id.predicted_taken;
+            id_ex.valid = true;
+        } else {
+            id_ex.valid = false;
+        }
     }
 }
 
@@ -60,7 +77,6 @@ void SparseFlowCore::stageExecute() {
         ex_mem.rd = id_ex.rd;
         ex_mem.write_data = id_ex.rs2_val;
         
-        // ALU operation
         switch (id_ex.instr.op) {
             case ADD:
                 ex_mem.alu_result = id_ex.rs1_val + id_ex.rs2_val;
