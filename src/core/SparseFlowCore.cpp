@@ -36,23 +36,23 @@ void SparseFlowCore::stageFetch() {
         if_id.predicted_taken = false;
         pc++;
     }
+    // Fixed: Keep IF/ID unchanged during stall (don't refetch)
 }
 
 void SparseFlowCore::stageDecode() {
-    // Load-Use Hazard Detection
     bool load_use_hazard = false;
     
     if (id_ex.valid && (id_ex.instr.op == LW || id_ex.instr.op == LNZ)) {
-        // Check if ID stage needs the value being loaded
-        if (id_ex.rd == if_id.instr.rs1 || id_ex.rd == if_id.instr.rs2) {
+        if (id_ex.rd != 0 && (id_ex.rd == if_id.instr.rs1 || id_ex.rd == if_id.instr.rs2)) {
             load_use_hazard = true;
         }
     }
     
     if (load_use_hazard) {
-        // Stall: Insert bubble into ID/EX
         stall_pipeline = true;
+        // Fixed: Correctly bubble by setting ID/EX to invalid NOP
         id_ex.valid = false;
+        id_ex.rd = 0;  // Ensure no write
     } else {
         stall_pipeline = false;
         
