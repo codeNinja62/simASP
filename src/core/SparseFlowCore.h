@@ -24,6 +24,7 @@ private:
     ID_EX_Reg id_ex;
     EX_MEM_Reg ex_mem;
     MEM_WB_Reg mem_wb;
+    MEM_WB_Reg wb_shadow;  // Shadow register for MEM-EX forwarding
 
     // Pipeline stage methods
     void stageFetch();
