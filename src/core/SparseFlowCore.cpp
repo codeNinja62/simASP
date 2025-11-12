@@ -36,7 +36,6 @@ void SparseFlowCore::stageFetch() {
         if_id.predicted_taken = false;
         pc++;
     }
-    // Fixed: Keep IF/ID unchanged during stall (don't refetch)
 }
 
 void SparseFlowCore::stageDecode() {
@@ -50,9 +49,8 @@ void SparseFlowCore::stageDecode() {
     
     if (load_use_hazard) {
         stall_pipeline = true;
-        // Fixed: Correctly bubble by setting ID/EX to invalid NOP
         id_ex.valid = false;
-        id_ex.rd = 0;  // Ensure no write
+        id_ex.rd = 0;
     } else {
         stall_pipeline = false;
         
@@ -73,20 +71,27 @@ void SparseFlowCore::stageDecode() {
 
 void SparseFlowCore::stageExecute() {
     if (id_ex.valid) {
+        int op1 = id_ex.rs1_val;
+        int op2 = id_ex.rs2_val;
+        
+        // DEBUG: Check forwarding values
+        std::cout << "[EX] rs1=" << id_ex.instr.rs1 << " val=" << op1;
+        std::cout << " rs2=" << id_ex.instr.rs2 << " val=" << op2 << std::endl;
+        
         ex_mem.instr = id_ex.instr;
         ex_mem.rd = id_ex.rd;
-        ex_mem.write_data = id_ex.rs2_val;
+        ex_mem.write_data = op2;
         
         switch (id_ex.instr.op) {
             case ADD:
-                ex_mem.alu_result = id_ex.rs1_val + id_ex.rs2_val;
+                ex_mem.alu_result = op1 + op2;
                 break;
             case SUB:
-                ex_mem.alu_result = id_ex.rs1_val - id_ex.rs2_val;
+                ex_mem.alu_result = op1 - op2;
                 break;
             case LW:
             case SW:
-                ex_mem.alu_result = id_ex.rs1_val + id_ex.imm;
+                ex_mem.alu_result = op1 + id_ex.imm;
                 break;
             default:
                 ex_mem.alu_result = 0;
@@ -116,6 +121,9 @@ void SparseFlowCore::stageMemory() {
 }
 
 void SparseFlowCore::stageWriteback() {
+    // Save previous WB for forwarding
+    wb_shadow = mem_wb;
+    
     if (mem_wb.valid && mem_wb.rd != 0) {
         if (mem_wb.instr.op == LW || mem_wb.instr.op == LNZ) {
             reg_file.write(mem_wb.rd, mem_wb.mem_data);
