@@ -74,9 +74,15 @@ void SparseFlowCore::stageExecute() {
         int op1 = id_ex.rs1_val;
         int op2 = id_ex.rs2_val;
         
-        // DEBUG: Check forwarding values
-        std::cout << "[EX] rs1=" << id_ex.instr.rs1 << " val=" << op1;
-        std::cout << " rs2=" << id_ex.instr.rs2 << " val=" << op2 << std::endl;
+        // EX-EX Forwarding: from previous ALU result
+        if (ex_mem.valid && ex_mem.rd != 0) {
+            if (ex_mem.rd == id_ex.instr.rs1) {
+                op1 = ex_mem.alu_result;
+            }
+            if (ex_mem.rd == id_ex.instr.rs2) {
+                op2 = ex_mem.alu_result;
+            }
+        }
         
         ex_mem.instr = id_ex.instr;
         ex_mem.rd = id_ex.rd;
@@ -121,7 +127,6 @@ void SparseFlowCore::stageMemory() {
 }
 
 void SparseFlowCore::stageWriteback() {
-    // Save previous WB for forwarding
     wb_shadow = mem_wb;
     
     if (mem_wb.valid && mem_wb.rd != 0) {
