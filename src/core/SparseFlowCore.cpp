@@ -74,13 +74,22 @@ void SparseFlowCore::stageExecute() {
         int op1 = id_ex.rs1_val;
         int op2 = id_ex.rs2_val;
         
-        // EX-EX Forwarding: from previous ALU result
+        // EX-EX Forwarding: from EX/MEM
         if (ex_mem.valid && ex_mem.rd != 0) {
-            if (ex_mem.rd == id_ex.instr.rs1) {
-                op1 = ex_mem.alu_result;
+            if (ex_mem.rd == id_ex.instr.rs1) op1 = ex_mem.alu_result;
+            if (ex_mem.rd == id_ex.instr.rs2) op2 = ex_mem.alu_result;
+        }
+        
+        // MEM-EX Forwarding: from MEM/WB
+        if (mem_wb.valid && mem_wb.rd != 0) {
+            int fwd_val = (mem_wb.instr.op == LW || mem_wb.instr.op == LNZ) 
+                          ? mem_wb.mem_data : mem_wb.alu_result;
+            // Only forward if EX-EX didn't already forward this register
+            if (mem_wb.rd == id_ex.instr.rs1 && !(ex_mem.valid && ex_mem.rd == id_ex.instr.rs1)) {
+                op1 = fwd_val;
             }
-            if (ex_mem.rd == id_ex.instr.rs2) {
-                op2 = ex_mem.alu_result;
+            if (mem_wb.rd == id_ex.instr.rs2 && !(ex_mem.valid && ex_mem.rd == id_ex.instr.rs2)) {
+                op2 = fwd_val;
             }
         }
         
@@ -89,14 +98,13 @@ void SparseFlowCore::stageExecute() {
         ex_mem.write_data = op2;
         
         switch (id_ex.instr.op) {
-            case ADD:
-                ex_mem.alu_result = op1 + op2;
-                break;
-            case SUB:
-                ex_mem.alu_result = op1 - op2;
-                break;
+            case ADD:  ex_mem.alu_result = op1 + op2; break;
+            case SUB:  ex_mem.alu_result = op1 - op2; break;
+            case MUL:  ex_mem.alu_result = op1 * op2; break;
+            case ADDI: ex_mem.alu_result = op1 + id_ex.imm; break;
             case LW:
             case SW:
+            case LNZ:
                 ex_mem.alu_result = op1 + id_ex.imm;
                 break;
             default:
@@ -115,7 +123,7 @@ void SparseFlowCore::stageMemory() {
         mem_wb.rd = ex_mem.rd;
         mem_wb.alu_result = ex_mem.alu_result;
         
-        if (ex_mem.instr.op == LW) {
+        if (ex_mem.instr.op == LW || ex_mem.instr.op == LNZ) {
             mem_wb.mem_data = memory.readData(ex_mem.alu_result);
         } else if (ex_mem.instr.op == SW) {
             memory.writeData(ex_mem.alu_result, ex_mem.write_data);
