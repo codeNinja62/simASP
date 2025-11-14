@@ -5,13 +5,21 @@
 
 class BranchPredictor {
 private:
-    std::vector<bool> prediction_table;
-    int size;
+    std::vector<int> pht;    // Pattern History Table (2-bit counters)
+    int table_size;
+    int predictions;
+    int mispredictions;
 
 public:
-    BranchPredictor(int table_size = 1024);
+    BranchPredictor(int size = 64);
+    
     bool predict(int pc);
-    void update(int pc, bool actually_taken);
+    void update(int pc, bool taken);
+    
+    double getAccuracy() const;
+    int getPredictions() const { return predictions; }
+    int getMispredictions() const { return mispredictions; }
+    void reset();
 };
 
 #endif // BRANCH_PREDICTOR_H
