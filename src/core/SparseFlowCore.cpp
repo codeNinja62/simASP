@@ -25,6 +25,7 @@ void SparseFlowCore::run() {
     }
     
     std::cout << "Cycles: " << cycle_count << std::endl;
+    std::cout << "Branch Accuracy: " << branch_predictor.getAccuracy() << "%" << std::endl;
     reg_file.dump();
 }
 
@@ -33,8 +34,19 @@ void SparseFlowCore::stageFetch() {
         if_id.instr = memory.fetch(pc);
         if_id.pc = pc;
         if_id.valid = true;
-        if_id.predicted_taken = false;
-        pc++;
+        
+        // Use branch predictor for branch instructions
+        if (if_id.instr.op == BEQ || if_id.instr.op == BNE) {
+            if_id.predicted_taken = branch_predictor.predict(pc);
+            if (if_id.predicted_taken) {
+                pc = pc + if_id.instr.imm;  // Speculative jump
+            } else {
+                pc++;
+            }
+        } else {
+            if_id.predicted_taken = false;
+            pc++;
+        }
     }
 }
 
@@ -74,17 +86,16 @@ void SparseFlowCore::stageExecute() {
         int op1 = id_ex.rs1_val;
         int op2 = id_ex.rs2_val;
         
-        // EX-EX Forwarding: from EX/MEM
+        // EX-EX Forwarding
         if (ex_mem.valid && ex_mem.rd != 0) {
             if (ex_mem.rd == id_ex.instr.rs1) op1 = ex_mem.alu_result;
             if (ex_mem.rd == id_ex.instr.rs2) op2 = ex_mem.alu_result;
         }
         
-        // MEM-EX Forwarding: from MEM/WB
+        // MEM-EX Forwarding
         if (mem_wb.valid && mem_wb.rd != 0) {
             int fwd_val = (mem_wb.instr.op == LW || mem_wb.instr.op == LNZ) 
                           ? mem_wb.mem_data : mem_wb.alu_result;
-            // Only forward if EX-EX didn't already forward this register
             if (mem_wb.rd == id_ex.instr.rs1 && !(ex_mem.valid && ex_mem.rd == id_ex.instr.rs1)) {
                 op1 = fwd_val;
             }
@@ -96,6 +107,28 @@ void SparseFlowCore::stageExecute() {
         ex_mem.instr = id_ex.instr;
         ex_mem.rd = id_ex.rd;
         ex_mem.write_data = op2;
+        
+        // Branch resolution
+        bool branch_taken = false;
+        if (id_ex.instr.op == BEQ) {
+            branch_taken = (op1 == op2);
+            branch_predictor.update(id_ex.pc, branch_taken);
+            
+            // Check for misprediction
+            if (branch_taken != id_ex.predicted_taken) {
+                // Flush pipeline and correct PC
+                if_id.valid = false;
+                pc = branch_taken ? (id_ex.pc + id_ex.imm) : (id_ex.pc + 1);
+            }
+        } else if (id_ex.instr.op == BNE) {
+            branch_taken = (op1 != op2);
+            branch_predictor.update(id_ex.pc, branch_taken);
+            
+            if (branch_taken != id_ex.predicted_taken) {
+                if_id.valid = false;
+                pc = branch_taken ? (id_ex.pc + id_ex.imm) : (id_ex.pc + 1);
+            }
+        }
         
         switch (id_ex.instr.op) {
             case ADD:  ex_mem.alu_result = op1 + op2; break;
