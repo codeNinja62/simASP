@@ -5,6 +5,7 @@
 #include "../hardware/RegisterFile.h"
 #include "../hardware/Memory.h"
 #include "../hardware/BranchPredictor.h"
+#include "../utils/Stats.h"
 #include "PipelineRegisters.h"
 
 class SparseFlowCore {
@@ -18,15 +19,15 @@ private:
     RegisterFile reg_file;
     Memory memory;
     BranchPredictor branch_predictor;
+    Stats stats;
 
     // Pipeline Registers
     IF_ID_Reg if_id;
     ID_EX_Reg id_ex;
     EX_MEM_Reg ex_mem;
     MEM_WB_Reg mem_wb;
-    MEM_WB_Reg wb_shadow;  // Shadow register for MEM-EX forwarding
+    MEM_WB_Reg wb_shadow;
 
-    // Pipeline stage methods
     void stageFetch();
     void stageDecode();
     void stageExecute();
@@ -39,6 +40,7 @@ public:
     void run();
     void writeDataMemory(int addr, int val);
     void setSingleCycleMode(bool enable) { single_cycle_mode = enable; }
+    const Stats& getStats() const { return stats; }
 };
 
 #endif // SPARSE_FLOW_CORE_H
