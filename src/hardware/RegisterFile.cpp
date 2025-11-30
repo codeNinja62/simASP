@@ -8,12 +8,12 @@ RegisterFile::RegisterFile() {
 }
 
 int RegisterFile::read(int reg_num) {
-    if (reg_num == 0) return 0;  // x0 is always 0
+    if (reg_num == 0) return 0; // x0 hardwired to 0
     return regs[reg_num];
 }
 
 void RegisterFile::write(int reg_num, int value) {
-    if (reg_num == 0) return;    // x0 is read-only
+    if (reg_num == 0) return; // x0 is read-only
     regs[reg_num] = value;
 }
 

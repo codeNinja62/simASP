@@ -2,24 +2,24 @@
 #define BRANCH_PREDICTOR_H
 
 #include <vector>
+#include <iostream>
 
+// Simple 1-Bit Branch Predictor (Direct Mapped)
 class BranchPredictor {
 private:
-    std::vector<int> pht;    // Pattern History Table (2-bit counters)
-    int table_size;
-    int predictions;
-    int mispredictions;
+    // Table of 1-bit counters (Taken/Not Taken)
+    // Indexed by PC % TableSize
+    std::vector<bool> prediction_table;
+    int size;
 
 public:
-    BranchPredictor(int size = 64);
-    
+    BranchPredictor(int table_size = 1024);
+
+    // Get prediction for a PC (True = Taken, False = Not Taken)
     bool predict(int pc);
-    void update(int pc, bool taken);
-    
-    double getAccuracy() const;
-    int getPredictions() const { return predictions; }
-    int getMispredictions() const { return mispredictions; }
-    void reset();
+
+    // Update predictor after branch resolution
+    void update(int pc, bool actually_taken);
 };
 
 #endif // BRANCH_PREDICTOR_H

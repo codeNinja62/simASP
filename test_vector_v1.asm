@@ -1,4 +1,4 @@
-# Test VLOAD (Vector Load)
+# Test VLOAD (Vector Load) with v1
 # Setup Memory
 MOV t0, 10      # Base address
 
@@ -13,7 +13,7 @@ MOV t1, 4
 SW t1, 3(t0)    # Mem[13] = 4
 
 # Test VLOAD
-# Should load [1, 2, 3, 4] into v0
-VLOAD v0, 0(t0)
+# Should load [1, 2, 3, 4] into v1
+VLOAD v1, 0(t0)
 
 HALT

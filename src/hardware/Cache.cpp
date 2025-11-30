@@ -11,7 +11,6 @@ Cache::Cache(int size_bytes, int block_size)
 }
 
 bool Cache::access(int addr) {
-    // Fixed: Correct tag/index calculation for direct-mapped cache
     int index = (addr / block_size) % num_lines;
     int tag = addr / (block_size * num_lines);
     
