@@ -1,0 +1,52 @@
+================================================================================
+                   SPARSEFLOW PERFORMANCE COMPARISON
+================================================================================
+Benchmark: Sparse Vector Summation (sparse_sum.asm)
+Description: Sums non-zero elements of a sparse array using LNZ instruction.
+Array Size: 10 elements (50% sparsity)
+
+--------------------------------------------------------------------------------
+1. PIPELINED MODE (5-Stage Pipeline with Forwarding & Hazard Detection)
+--------------------------------------------------------------------------------
+Command: ./simulator benchmarks/sparse_sum.asm
+
+Total Cycles:                 78
+Instructions Retired:         44
+CPI (Cycles Per Instr):       1.77
+IPC (Instr Per Cycle):        0.56
+Stall Cycles:                 25 (Load-Use Hazards + Cache Misses)
+Zero-Skipping Savings:        5 ops skipped (Hardware LNZ)
+
+Analysis:
+The pipelined processor achieves a CPI of 1.77. Ideally, CPI would be 1.0, but
+Load-Use hazards (due to LNZ->ADD dependency) and Memory Stalls (Cache Misses)
+introduce bubbles. However, the throughput is significantly higher than the
+single-cycle model.
+
+--------------------------------------------------------------------------------
+2. SINGLE-CYCLE MODE (Serialized Execution)
+--------------------------------------------------------------------------------
+Command: ./simulator benchmarks/sparse_sum.asm --single-cycle
+
+Total Cycles:                 205
+Instructions Retired:         44
+CPI (Cycles Per Instr):       4.66
+IPC (Instr Per Cycle):        0.21
+Stall Cycles:                 20 (Memory Stalls)
+
+Analysis:
+The single-cycle model effectively serializes execution, taking approximately
+5 cycles per instruction (Fetch, Decode, Execute, Memory, Writeback) plus
+memory latencies. The CPI of 4.66 confirms this behavior.
+
+--------------------------------------------------------------------------------
+3. SPEEDUP CALCULATION
+--------------------------------------------------------------------------------
+Speedup = (Execution Time Single-Cycle) / (Execution Time Pipelined)
+        = 205 Cycles / 78 Cycles
+        = 2.63x
+
+Conclusion:
+Pipelining provides a 2.63x speedup for this sparse matrix workload. The
+custom LNZ instruction further accelerates execution in both modes by
+skipping zero-valued elements in hardware, avoiding software branch overhead.

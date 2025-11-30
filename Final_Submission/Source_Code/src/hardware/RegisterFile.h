@@ -3,23 +3,23 @@
 
 #include <vector>
 #include <iostream>
+#include <iomanip>
+#include <string>
+#include "../isa/ISA.h"
 
 class RegisterFile {
 private:
     int regs[32];
-    int vregs[8][4];
-
+    int vregs[8][4]; // 8 Vector Registers, 4 elements each
 public:
     RegisterFile();
-    
-    // Scalar access
     int read(int reg_num);
     void write(int reg_num, int value);
     
-    // Vector access
+    // Vector Access
     std::vector<int> readVector(int reg_num);
     void writeVector(int reg_num, const std::vector<int>& values);
-    
+
     void dump();
 };
 

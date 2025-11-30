@@ -1,0 +1,4 @@
+MOV t1, 10
+ADDI t1, t1, 5
+ADDI t1, t1, -2
+HALT
