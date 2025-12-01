@@ -46,15 +46,20 @@ public:
     void loadProgram(const std::vector<Instruction>& prog);
     void writeDataMemory(int addr, int val);
     void run();
+    void runInteractive();  // Interactive step-by-step mode
     void setSingleCycleMode(bool enable) { single_cycle_mode = enable; }
     void setShowPipeline(bool enable) { show_pipeline = enable; }
+    void setInteractiveMode(bool enable) { interactive_mode = enable; }
     void printPipelineDiagram(int lastN = 20) { trace_logger.printAsciiDiagram(lastN); }
     void savePipelineDiagram(const std::string& filename) { trace_logger.printAsciiDiagramToFile(filename); }
 
 private:
     bool single_cycle_mode;
     bool show_pipeline;
+    bool interactive_mode;
     bool isPipelineEmpty() const;
+    void printPipelineState() const;  // Print current pipeline state for interactive mode
+    void printRegisterSummary() const;  // Print key registers
 };
 
 #endif // SPARSE_FLOW_CORE_H

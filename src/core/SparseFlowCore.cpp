@@ -5,7 +5,7 @@ using namespace std;
 
 SparseFlowCore::SparseFlowCore() 
     : pc(0), cycle_count(0), halted(false), zero_skips(0), stall_pipeline(false), mem_stall_cycles(0),
-      trace_logger("pipeline_trace.csv"), single_cycle_mode(false), show_pipeline(false) 
+      trace_logger("pipeline_trace.csv"), single_cycle_mode(false), show_pipeline(false), interactive_mode(false) 
 {
     // Initialize pipeline registers to invalid
     if_id.valid = false;
