@@ -214,6 +214,9 @@ void SparseFlowCore::stageExecute() {
         else if (id_ex.instr.op == SLT) {
             result = (op1 < op2) ? 1 : 0;
         }
+        else if (id_ex.instr.op == SLTI) {
+            result = (op1 < id_ex.imm) ? 1 : 0;
+        }
         else if (id_ex.instr.op == SUB) {
             result = op1 - op2;
         }
@@ -228,9 +231,12 @@ void SparseFlowCore::stageExecute() {
             if (op1 == op2) {
                 branch_taken = true;
                 branch_target = id_ex.pc + id_ex.imm;
-                // cout << " [DEBUG] BEQ Taken! PC=" << id_ex.pc << " Imm=" << id_ex.imm << " Target=" << branch_target << endl;
-            } else {
-                // cout << " [DEBUG] BEQ Not Taken. PC=" << id_ex.pc << " Imm=" << id_ex.imm << endl;
+            }
+        }
+        else if (id_ex.instr.op == BNE) {
+            if (op1 != op2) {
+                branch_taken = true;
+                branch_target = id_ex.pc + id_ex.imm;
             }
         }
         else if (id_ex.instr.op == BZERO) {
