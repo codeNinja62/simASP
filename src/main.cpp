@@ -11,6 +11,7 @@ void printUsage(const char* progName) {
     cout << "Options:\n";
     cout << "  --single-cycle    Run in single-cycle (non-pipelined) mode\n";
     cout << "  --show-pipeline   Display ASCII pipeline diagram after execution\n";
+    cout << "  --interactive     Interactive step-by-step mode (for demos)\n";
     cout << "  --help            Show this help message\n";
 }
 
@@ -24,6 +25,7 @@ int main(int argc, char* argv[]) {
     string filename = "test_program.asm";
     bool single_cycle = false;
     bool show_pipeline = false;
+    bool interactive = false;
 
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
@@ -31,6 +33,8 @@ int main(int argc, char* argv[]) {
             single_cycle = true;
         } else if (arg == "--show-pipeline") {
             show_pipeline = true;
+        } else if (arg == "--interactive" || arg == "-i") {
+            interactive = true;
         } else if (arg == "--help" || arg == "-h") {
             printUsage(argv[0]);
             return 0;
@@ -59,7 +63,12 @@ int main(int argc, char* argv[]) {
     }
 
     core.loadProgram(program);
-    core.run();
+    
+    if (interactive) {
+        core.runInteractive();
+    } else {
+        core.run();
+    }
 
     return 0;
 }

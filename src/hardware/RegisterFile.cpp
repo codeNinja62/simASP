@@ -9,7 +9,7 @@ RegisterFile::RegisterFile() {
     }
 }
 
-int RegisterFile::read(int reg_num) {
+int RegisterFile::read(int reg_num) const {
     if (reg_num < 0 || reg_num > 31) return 0;
     return regs[reg_num];
 }
@@ -19,7 +19,7 @@ void RegisterFile::write(int reg_num, int value) {
     if (reg_num > 0 && reg_num < 32) regs[reg_num] = value;
 }
 
-std::vector<int> RegisterFile::readVector(int reg_num) {
+std::vector<int> RegisterFile::readVector(int reg_num) const {
     std::vector<int> vec(4, 0);
     if (reg_num >= 0 && reg_num < 8) {
         for(int i=0; i<4; i++) vec[i] = vregs[reg_num][i];
@@ -33,7 +33,7 @@ void RegisterFile::writeVector(int reg_num, const std::vector<int>& values) {
     }
 }
 
-void RegisterFile::dump() {
+void RegisterFile::dump() const {
     cout << "\n[Register File State]:" << endl;
     for (int i = 0; i < 32; i++) { // Print all 32
         string name = "x" + to_string(i);

@@ -500,3 +500,220 @@ void SparseFlowCore::run() {
     
     reg_file.dump();
 }
+
+// ------------------------------------------------------------------------
+// INTERACTIVE MODE HELPERS
+// ------------------------------------------------------------------------
+void SparseFlowCore::printPipelineState() const {
+    cout << "\n+--------+----------------+----------------+----------------+----------------+----------------+\n";
+    cout << "| Stage  |       IF       |       ID       |       EX       |      MEM       |       WB       |\n";
+    cout << "+--------+----------------+----------------+----------------+----------------+----------------+\n";
+    
+    auto truncate = [](const string& s, size_t len) -> string {
+        if (s.length() <= len) return s;
+        return s.substr(0, len - 2) + "..";
+    };
+    
+    Instruction fetch_instr = memory.fetch(pc);
+    string if_str = truncate(fetch_instr.raw_asm, 14);
+    string id_str = if_id.valid ? truncate(if_id.instr.raw_asm, 14) : "----";
+    string ex_str = id_ex.valid ? truncate(id_ex.instr.raw_asm, 14) : "----";
+    string mem_str = ex_mem.valid ? truncate(ex_mem.instr.raw_asm, 14) : "----";
+    string wb_str = mem_wb.valid ? truncate(mem_wb.instr.raw_asm, 14) : "----";
+    
+    cout << "| Instr  | " << left << setw(14) << if_str << " | "
+         << setw(14) << id_str << " | "
+         << setw(14) << ex_str << " | "
+         << setw(14) << mem_str << " | "
+         << setw(14) << wb_str << " |\n";
+    cout << "+--------+----------------+----------------+----------------+----------------+----------------+\n";
+    
+    // Status line
+    string status = "";
+    if (mem_stall_cycles > 0) status = "[MEMORY STALL]";
+    else if (stall_pipeline) status = "[HAZARD STALL]";
+    else status = "[RUNNING]";
+    
+    cout << "| Status | PC=" << setw(4) << pc << " | Cycle=" << setw(6) << cycle_count 
+         << " | " << setw(20) << status << "                          |\n";
+    cout << "+--------+----------------+----------------+----------------+----------------+----------------+\n";
+}
+
+void SparseFlowCore::printRegisterSummary() const {
+    cout << "\n[Key Registers]\n";
+    cout << "  t0=" << setw(6) << reg_file.read(5) 
+         << "  t1=" << setw(6) << reg_file.read(6) 
+         << "  t2=" << setw(6) << reg_file.read(7)
+         << "  t3=" << setw(6) << reg_file.read(28) << "\n";
+    cout << "  a0=" << setw(6) << reg_file.read(10) 
+         << "  a1=" << setw(6) << reg_file.read(11) 
+         << "  ra=" << setw(6) << reg_file.read(1)
+         << "  sp=" << setw(6) << reg_file.read(2) << "\n";
+}
+
+// ------------------------------------------------------------------------
+// INTERACTIVE RUN MODE
+// ------------------------------------------------------------------------
+void SparseFlowCore::runInteractive() {
+    cout << "\n";
+    cout << "+=============================================================================+\n";
+    cout << "|              SPARSEFLOW INTERACTIVE PIPELINE SIMULATOR                     |\n";
+    cout << "+=============================================================================+\n";
+    cout << "|  Commands:                                                                 |\n";
+    cout << "|    [Enter] or 's' - Step one cycle                                         |\n";
+    cout << "|    'r' <n>        - Run n cycles                                           |\n";
+    cout << "|    'c'            - Continue to end                                        |\n";
+    cout << "|    'p'            - Print all registers                                    |\n";
+    cout << "|    'm' <addr>     - Show memory at address                                 |\n";
+    cout << "|    'd'            - Show pipeline diagram (last 10 cycles)                 |\n";
+    cout << "|    'q'            - Quit                                                   |\n";
+    cout << "+=============================================================================+\n";
+    
+    string input;
+    bool running = true;
+    
+    while (running && !halted && cycle_count < 1000000) {
+        // Show current state
+        printPipelineState();
+        printRegisterSummary();
+        
+        // Prompt
+        cout << "\nSparseFlow [cycle " << cycle_count << "]> ";
+        getline(cin, input);
+        
+        // Trim whitespace
+        size_t start = input.find_first_not_of(" \t");
+        size_t end = input.find_last_not_of(" \t");
+        if (start == string::npos) input = "";
+        else input = input.substr(start, end - start + 1);
+        
+        if (input.empty() || input == "s" || input == "step") {
+            // Single step
+            stats.addCycle();
+            
+            // Log
+            string event = "";
+            if (mem_stall_cycles > 0) event = "Stall (Memory)";
+            else if (stall_pipeline) event = "Stall (Hazard)";
+            
+            Instruction fetch_instr = memory.fetch(pc);
+            trace_logger.logCycle(cycle_count,
+                fetch_instr.raw_asm,
+                if_id.valid ? if_id.instr.raw_asm : "BUBBLE",
+                id_ex.valid ? id_ex.instr.raw_asm : "BUBBLE",
+                ex_mem.valid ? ex_mem.instr.raw_asm : "BUBBLE",
+                mem_wb.valid ? mem_wb.instr.raw_asm : "BUBBLE",
+                event
+            );
+            
+            if (mem_stall_cycles > 0) {
+                mem_stall_cycles--;
+                stats.addStall();
+                cout << "  [Stalling for memory: " << mem_stall_cycles << " cycles remaining]\n";
+            } else {
+                stageWriteback();
+                stageMemory();
+                if (mem_stall_cycles == 0) {
+                    stageExecute();
+                    stageDecode();
+                    stageFetch();
+                }
+            }
+            cycle_count++;
+            
+        } else if (input[0] == 'r') {
+            // Run n cycles
+            int n = 1;
+            if (input.length() > 1) {
+                n = atoi(input.substr(1).c_str());
+                if (n <= 0) n = 1;
+            }
+            cout << "  Running " << n << " cycles...\n";
+            for (int i = 0; i < n && !halted && cycle_count < 1000000; i++) {
+                stats.addCycle();
+                string event = "";
+                if (mem_stall_cycles > 0) event = "Stall (Memory)";
+                else if (stall_pipeline) event = "Stall (Hazard)";
+                
+                Instruction fetch_instr = memory.fetch(pc);
+                trace_logger.logCycle(cycle_count, fetch_instr.raw_asm,
+                    if_id.valid ? if_id.instr.raw_asm : "BUBBLE",
+                    id_ex.valid ? id_ex.instr.raw_asm : "BUBBLE",
+                    ex_mem.valid ? ex_mem.instr.raw_asm : "BUBBLE",
+                    mem_wb.valid ? mem_wb.instr.raw_asm : "BUBBLE", event);
+                
+                if (mem_stall_cycles > 0) {
+                    mem_stall_cycles--;
+                    stats.addStall();
+                } else {
+                    stageWriteback();
+                    stageMemory();
+                    if (mem_stall_cycles == 0) {
+                        stageExecute();
+                        stageDecode();
+                        stageFetch();
+                    }
+                }
+                cycle_count++;
+            }
+            
+        } else if (input == "c" || input == "continue") {
+            // Continue to end
+            cout << "  Continuing to end...\n";
+            while (!halted && cycle_count < 1000000) {
+                stats.addCycle();
+                string event = "";
+                if (mem_stall_cycles > 0) event = "Stall (Memory)";
+                else if (stall_pipeline) event = "Stall (Hazard)";
+                
+                Instruction fetch_instr = memory.fetch(pc);
+                trace_logger.logCycle(cycle_count, fetch_instr.raw_asm,
+                    if_id.valid ? if_id.instr.raw_asm : "BUBBLE",
+                    id_ex.valid ? id_ex.instr.raw_asm : "BUBBLE",
+                    ex_mem.valid ? ex_mem.instr.raw_asm : "BUBBLE",
+                    mem_wb.valid ? mem_wb.instr.raw_asm : "BUBBLE", event);
+                
+                if (mem_stall_cycles > 0) {
+                    mem_stall_cycles--;
+                    stats.addStall();
+                } else {
+                    stageWriteback();
+                    stageMemory();
+                    if (mem_stall_cycles == 0) {
+                        stageExecute();
+                        stageDecode();
+                        stageFetch();
+                    }
+                }
+                cycle_count++;
+            }
+            running = false;
+            
+        } else if (input == "p" || input == "print") {
+            reg_file.dump();
+            
+        } else if (input[0] == 'm') {
+            int addr = 0;
+            if (input.length() > 1) {
+                addr = atoi(input.substr(1).c_str());
+            }
+            cout << "  Memory[" << addr << "] = " << memory.readData(addr) << "\n";
+            
+        } else if (input == "d" || input == "diagram") {
+            trace_logger.printAsciiDiagram(10);
+            
+        } else if (input == "q" || input == "quit" || input == "exit") {
+            running = false;
+            
+        } else {
+            cout << "  Unknown command: " << input << "\n";
+        }
+    }
+    
+    // Final report
+    cout << "\n--- End of Interactive Session ---\n";
+    stats.setCacheStats(memory.getCacheHits(), memory.getCacheMisses());
+    stats.printReport();
+    trace_logger.printAsciiDiagramToFile("pipeline_diagram.txt");
+    reg_file.dump();
+}

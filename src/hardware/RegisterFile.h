@@ -13,14 +13,14 @@ private:
     int vregs[8][4]; // 8 Vector Registers, 4 elements each
 public:
     RegisterFile();
-    int read(int reg_num);
+    int read(int reg_num) const;
     void write(int reg_num, int value);
     
     // Vector Access
-    std::vector<int> readVector(int reg_num);
+    std::vector<int> readVector(int reg_num) const;
     void writeVector(int reg_num, const std::vector<int>& values);
 
-    void dump();
+    void dump() const;
 };
 
 #endif // REGISTER_FILE_H
