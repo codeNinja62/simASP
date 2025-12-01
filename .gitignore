@@ -1,0 +1,14 @@
+# Build artifacts
+*.exe
+*.o
+
+# Trace and logs
+pipeline_trace.csv
+*.csv
+
+# Editor files
+.vscode/
+*.swp
+
+# Binary and large files - consider using Git LFS
+# If you have trace files or large binaries, use Git LFS instead of committing them directly.
