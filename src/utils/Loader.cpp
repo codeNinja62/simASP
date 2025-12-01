@@ -70,9 +70,11 @@ Opcode Loader::parseOpcode(string op_str) {
     if (op_str == "BEQ") return BEQ;
     if (op_str == "SLT") return SLT;
     if (op_str == "ADDI") return ADDI;
+    if (op_str == "SLTI") return SLTI;
     if (op_str == "JR") return JR;
     if (op_str == "LNZ") return LNZ;
     if (op_str == "ZMUL") return ZMUL;
+    if (op_str == "BNE") return BNE;
     if (op_str == "ZMAC") return ZMAC;
     if (op_str == "VLOAD") return VLOAD;
     if (op_str == "BZERO") return BZERO;
@@ -211,15 +213,14 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
                 }
             }
         }
-        // Branch: OP rs1, rs2, label (BEQ)
-        else if (instr.op == BEQ) {
+        // Branch: OP rs1, rs2, label (BEQ, BNE)
+        else if (instr.op == BEQ || instr.op == BNE) {
             if (tokens.size() >= 3) {
                 instr.rs1 = parseRegister(tokens[0]);
                 instr.rs2 = parseRegister(tokens[1]);
                 string label = tokens[2];
                 if (label_map.count(label)) {
                     instr.imm = label_map[label] - pc_map[i]; // Relative Offset
-                    // cout << " [Loader] BEQ at PC " << pc_map[i] << " to Label " << label << " (PC " << label_map[label] << ") -> Offset " << instr.imm << endl;
                 } else {
                     try { instr.imm = stoi(label); } catch(...) { instr.imm = 0; }
                 }
