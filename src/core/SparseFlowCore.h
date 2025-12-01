@@ -47,9 +47,13 @@ public:
     void writeDataMemory(int addr, int val);
     void run();
     void setSingleCycleMode(bool enable) { single_cycle_mode = enable; }
+    void setShowPipeline(bool enable) { show_pipeline = enable; }
+    void printPipelineDiagram(int lastN = 20) { trace_logger.printAsciiDiagram(lastN); }
+    void savePipelineDiagram(const std::string& filename) { trace_logger.printAsciiDiagramToFile(filename); }
 
 private:
     bool single_cycle_mode;
+    bool show_pipeline;
     bool isPipelineEmpty() const;
 };
 

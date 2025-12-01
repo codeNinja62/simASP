@@ -2,9 +2,8 @@
 
 using namespace std;
 
-Memory::Memory() : cache(1024, 32) { // 1KB Cache, 32B Blocks (match report)
-    // Main memory: 512K words to accommodate 512x512 benchmarks
-    data_mem.resize(512 * 1024, 0); // 512K words (~2MB assuming 4B words)
+Memory::Memory() : cache(1024, 64) { // 1KB Cache, 64B Blocks
+    data_mem.resize(1024 * 1024, 0); // 1M words (4MB), sufficient for 512x512
 }
 
 void Memory::loadProgram(const vector<Instruction>& program) {

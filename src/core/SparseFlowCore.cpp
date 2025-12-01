@@ -5,7 +5,7 @@ using namespace std;
 
 SparseFlowCore::SparseFlowCore() 
     : pc(0), cycle_count(0), halted(false), zero_skips(0), stall_pipeline(false), mem_stall_cycles(0),
-      trace_logger("pipeline_trace.csv"), single_cycle_mode(false) 
+      trace_logger("pipeline_trace.csv"), single_cycle_mode(false), show_pipeline(false) 
 {
     // Initialize pipeline registers to invalid
     if_id.valid = false;
@@ -214,9 +214,6 @@ void SparseFlowCore::stageExecute() {
         else if (id_ex.instr.op == SLT) {
             result = (op1 < op2) ? 1 : 0;
         }
-        else if (id_ex.instr.op == SLTI) {
-            result = (op1 < id_ex.imm) ? 1 : 0;
-        }
         else if (id_ex.instr.op == SUB) {
             result = op1 - op2;
         }
@@ -231,12 +228,9 @@ void SparseFlowCore::stageExecute() {
             if (op1 == op2) {
                 branch_taken = true;
                 branch_target = id_ex.pc + id_ex.imm;
-            }
-        }
-        else if (id_ex.instr.op == BNE) {
-            if (op1 != op2) {
-                branch_taken = true;
-                branch_target = id_ex.pc + id_ex.imm;
+                // cout << " [DEBUG] BEQ Taken! PC=" << id_ex.pc << " Imm=" << id_ex.imm << " Target=" << branch_target << endl;
+            } else {
+                // cout << " [DEBUG] BEQ Not Taken. PC=" << id_ex.pc << " Imm=" << id_ex.imm << endl;
             }
         }
         else if (id_ex.instr.op == BZERO) {
@@ -495,5 +489,14 @@ void SparseFlowCore::run() {
     cout << "\nSimulation Finished." << endl;
     stats.setCacheStats(memory.getCacheHits(), memory.getCacheMisses());
     stats.printReport();
+    
+    // Show pipeline diagram if enabled
+    if (show_pipeline) {
+        trace_logger.printAsciiDiagram(30); // Show last 30 cycles
+    }
+    
+    // Always save full diagram to file
+    trace_logger.printAsciiDiagramToFile("pipeline_diagram.txt");
+    
     reg_file.dump();
 }

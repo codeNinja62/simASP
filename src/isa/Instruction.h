@@ -4,7 +4,7 @@
 #include <string>
 
 enum Opcode {
-    ADD, SUB, JMP, LW, SW, BEQ, BNE, SLT, SLTI, ADDI, JR, // Base RISC-V Subset
+    ADD, SUB, JMP, LW, SW, BEQ, SLT, ADDI, JR, // Base RISC-V Subset
     LNZ, ZMUL, ZMAC, VLOAD, BZERO, MOV, HALT // Custom Sparse Extensions
 };
 

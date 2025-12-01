@@ -4,12 +4,20 @@
 #include <vector>
 #include <iostream>
 
-// Simple 1-Bit Branch Predictor (Direct Mapped)
+// 2-Bit Saturating Counter Branch Predictor (Direct Mapped)
+// States: 00=Strongly Not Taken, 01=Weakly Not Taken, 10=Weakly Taken, 11=Strongly Taken
 class BranchPredictor {
+public:
+    enum State {
+        STRONGLY_NOT_TAKEN = 0,  // 00
+        WEAKLY_NOT_TAKEN = 1,    // 01
+        WEAKLY_TAKEN = 2,        // 10
+        STRONGLY_TAKEN = 3       // 11
+    };
+    
 private:
-    // Table of 1-bit counters (Taken/Not Taken)
-    // Indexed by PC % TableSize
-    std::vector<bool> prediction_table;
+    // Table of 2-bit counters
+    std::vector<State> prediction_table;
     int size;
 
 public:
@@ -20,6 +28,9 @@ public:
 
     // Update predictor after branch resolution
     void update(int pc, bool actually_taken);
+    
+    // Get state name for debugging
+    static const char* stateName(State s);
 };
 
 #endif // BRANCH_PREDICTOR_H

@@ -6,6 +6,14 @@
 
 using namespace std;
 
+void printUsage(const char* progName) {
+    cout << "Usage: " << progName << " [options] <assembly_file.asm>\n";
+    cout << "Options:\n";
+    cout << "  --single-cycle    Run in single-cycle (non-pipelined) mode\n";
+    cout << "  --show-pipeline   Display ASCII pipeline diagram after execution\n";
+    cout << "  --help            Show this help message\n";
+}
+
 int main(int argc, char* argv[]) {
     SparseFlowCore core;
     Loader loader;
@@ -15,11 +23,17 @@ int main(int argc, char* argv[]) {
 
     string filename = "test_program.asm";
     bool single_cycle = false;
+    bool show_pipeline = false;
 
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
         if (arg == "--single-cycle") {
             single_cycle = true;
+        } else if (arg == "--show-pipeline") {
+            show_pipeline = true;
+        } else if (arg == "--help" || arg == "-h") {
+            printUsage(argv[0]);
+            return 0;
         } else {
             filename = arg;
         }
@@ -30,6 +44,10 @@ int main(int argc, char* argv[]) {
         core.setSingleCycleMode(true);
     } else {
         cout << "Mode: Pipelined" << endl;
+    }
+    
+    if (show_pipeline) {
+        core.setShowPipeline(true);
     }
 
     cout << "Loading program from: " << filename << endl;
