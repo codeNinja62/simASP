@@ -14,7 +14,7 @@ The simulator models:
 *   **5-Stage Pipeline**: Fetch (IF), Decode (ID), Execute (EX), Memory (MEM), Writeback (WB).
 *   **Hazard Handling**: Data forwarding, Load-Use stalls, and Control hazard flushing.
 *   **Memory Hierarchy**: Simple instruction memory and data memory with a simulated cache latency model.
-*   **Branch Prediction**: 1-bit dynamic branch predictor.
+*   **Branch Prediction**: 2-bit saturating counter branch predictor.
 *   **Custom ISA Extensions**: Specialized instructions for sparse matrix operations.
 
 ---

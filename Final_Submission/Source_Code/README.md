@@ -16,7 +16,7 @@
 - **`VLOAD` (Vector Load)**: Loads 4 integers at once into specialized vector registers (`v0`-`v7`), increasing throughput.
 
 ### 3. Advanced Architecture Features
-- **Branch Prediction**: 1-Bit Dynamic Branch Predictor to reduce control hazard penalties.
+- **Branch Prediction**: 2-Bit Saturating Counter Branch Predictor to reduce control hazard penalties.
 - **Memory Hierarchy**: Simulated Direct-Mapped Cache with configurable latency (Hit: 1 cycle, Miss: 10 cycles).
 - **Trace Logging**: Generates `pipeline_trace.csv` for cycle-by-cycle visualization of instruction flow.
 

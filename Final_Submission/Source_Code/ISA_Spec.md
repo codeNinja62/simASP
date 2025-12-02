@@ -73,4 +73,4 @@ Unconditionally jumps to the target label.
 
 ## 5. Hazard Handling
 - **Data Hazards**: Solved via **Forwarding** (EX->EX, MEM->EX) and **Stalling** (Load-Use hazard).
-- **Control Hazards**: Handled via **1-Bit Branch Predictor**. Mispredictions cause a pipeline flush.
+- **Control Hazards**: Handled via **2-Bit Saturating Counter Branch Predictor**. Mispredictions cause a pipeline flush.
