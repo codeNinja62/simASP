@@ -46,7 +46,7 @@ void SparseFlowCore::stageFetch() {
 
     // Branch Prediction
     bool predict_taken = false;
-    if (fetched.op == BEQ || fetched.op == BZERO || fetched.op == JMP) {
+    if (fetched.op == BEQ || fetched.op == BNE || fetched.op == BZERO || fetched.op == JMP) {
         predict_taken = branch_predictor.predict(pc);
     }
 
@@ -155,7 +155,7 @@ void SparseFlowCore::stageExecute() {
     int op2 = id_ex.rs2_val;
 
         // Forward from MEM stage (EX/MEM) - Priority 1
-        bool ex_mem_writes = (ex_mem.instr.op != BEQ && ex_mem.instr.op != BZERO && ex_mem.instr.op != SW && ex_mem.instr.op != HALT);
+        bool ex_mem_writes = (ex_mem.instr.op != BEQ && ex_mem.instr.op != BNE && ex_mem.instr.op != BZERO && ex_mem.instr.op != SW && ex_mem.instr.op != HALT);
         if (ex_mem.valid && ex_mem_writes && ex_mem.rd != 0) {
             if (ex_mem.rd == id_ex.instr.rs1) {
                 op1 = ex_mem.alu_result;
@@ -167,7 +167,7 @@ void SparseFlowCore::stageExecute() {
             }
         }    // Forward from WB stage (MEM/WB) - Priority 2
     // Use wb_shadow because mem_wb has been updated by stageMemory for the *next* cycle
-    bool mem_wb_writes = (wb_shadow.instr.op != BEQ && wb_shadow.instr.op != BZERO && wb_shadow.instr.op != SW && wb_shadow.instr.op != HALT);
+    bool mem_wb_writes = (wb_shadow.instr.op != BEQ && wb_shadow.instr.op != BNE && wb_shadow.instr.op != BZERO && wb_shadow.instr.op != SW && wb_shadow.instr.op != HALT);
     if (wb_shadow.valid && mem_wb_writes && wb_shadow.rd != 0) {
         int wb_val = (wb_shadow.instr.op == LW || wb_shadow.instr.op == LNZ) ? wb_shadow.mem_data : wb_shadow.alu_result;
         
@@ -214,6 +214,9 @@ void SparseFlowCore::stageExecute() {
         else if (id_ex.instr.op == SLT) {
             result = (op1 < op2) ? 1 : 0;
         }
+        else if (id_ex.instr.op == SLTI) {
+            result = (op1 < id_ex.imm) ? 1 : 0;
+        }
         else if (id_ex.instr.op == SUB) {
             result = op1 - op2;
         }
@@ -231,6 +234,12 @@ void SparseFlowCore::stageExecute() {
                 // cout << " [DEBUG] BEQ Taken! PC=" << id_ex.pc << " Imm=" << id_ex.imm << " Target=" << branch_target << endl;
             } else {
                 // cout << " [DEBUG] BEQ Not Taken. PC=" << id_ex.pc << " Imm=" << id_ex.imm << endl;
+            }
+        }
+        else if (id_ex.instr.op == BNE) {
+            if (op1 != op2) {
+                branch_taken = true;
+                branch_target = id_ex.pc + id_ex.imm;
             }
         }
         else if (id_ex.instr.op == BZERO) {
@@ -251,7 +260,7 @@ void SparseFlowCore::stageExecute() {
         // Track Instruction Mix
         if (id_ex.instr.op == LW || id_ex.instr.op == SW || id_ex.instr.op == LNZ || id_ex.instr.op == VLOAD) {
             stats.addMemoryOp();
-        } else if (id_ex.instr.op == BEQ || id_ex.instr.op == BZERO || id_ex.instr.op == JMP || id_ex.instr.op == JR) {
+        } else if (id_ex.instr.op == BEQ || id_ex.instr.op == BNE || id_ex.instr.op == BZERO || id_ex.instr.op == JMP || id_ex.instr.op == JR) {
             stats.addBranchOp();
         } else if (id_ex.instr.op != HALT) {
             stats.addAluOp();
@@ -259,7 +268,7 @@ void SparseFlowCore::stageExecute() {
 
         // Handle Branching (Control Hazard)
         bool misprediction = false;
-        if (id_ex.instr.op == BEQ || id_ex.instr.op == BZERO || id_ex.instr.op == JMP || id_ex.instr.op == JR) {
+        if (id_ex.instr.op == BEQ || id_ex.instr.op == BNE || id_ex.instr.op == BZERO || id_ex.instr.op == JMP || id_ex.instr.op == JR) {
             // Update Predictor
             branch_predictor.update(id_ex.pc, branch_taken);
             
@@ -412,7 +421,7 @@ void SparseFlowCore::stageWriteback() {
              reg_file.write(mem_wb.instr.rs1, next_ptr);
              // cout << " [WB] LNZ Auto-Increment: Updated x" << mem_wb.instr.rs1 << " to " << next_ptr << endl;
         }
-    } else if (mem_wb.instr.op == ADD || mem_wb.instr.op == SUB || mem_wb.instr.op == ZMUL || mem_wb.instr.op == MOV || mem_wb.instr.op == ADDI || mem_wb.instr.op == SLT) {
+    } else if (mem_wb.instr.op == ADD || mem_wb.instr.op == SUB || mem_wb.instr.op == ZMUL || mem_wb.instr.op == MOV || mem_wb.instr.op == ADDI || mem_wb.instr.op == SLT || mem_wb.instr.op == SLTI) {
         write_val = mem_wb.alu_result;
         write_enable = true;
     }
