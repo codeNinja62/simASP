@@ -17,12 +17,12 @@ private:
 public:
     Memory();
     void loadProgram(const std::vector<Instruction>& program);
-    Instruction fetch(int pc);
+    Instruction fetch(int pc) const;
     
     // Returns latency in cycles
     int requestAccess(int addr);
     
-    int readData(int addr);
+    int readData(int addr) const;
     void writeData(int addr, int value);
 
     Cache& getCache() { return cache; }
