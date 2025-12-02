@@ -10,8 +10,8 @@ void Memory::loadProgram(const vector<Instruction>& program) {
     instr_mem = program;
 }
 
-Instruction Memory::fetch(int pc) {
-    if (pc < 0 || pc >= instr_mem.size()) return Instruction(); // Return HALT/NOP
+Instruction Memory::fetch(int pc) const {
+    if (pc < 0 || pc >= (int)instr_mem.size()) return Instruction(); // Return HALT/NOP
     return instr_mem[pc];
 }
 
@@ -21,8 +21,8 @@ int Memory::requestAccess(int addr) {
     return hit ? HIT_LATENCY : MISS_LATENCY;
 }
 
-int Memory::readData(int addr) {
-    if (addr < 0 || addr >= data_mem.size()) return 0;
+int Memory::readData(int addr) const {
+    if (addr < 0 || addr >= (int)data_mem.size()) return 0;
     return data_mem[addr];
 }
 
