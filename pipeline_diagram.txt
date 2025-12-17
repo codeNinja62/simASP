@@ -1,0 +1,85 @@
+
++-------+--------------+--------------+--------------+--------------+--------------+-----+
+| Cycle |      IF      |      ID      |      EX      |     MEM      |      WB      | Evt |
++-------+--------------+--------------+--------------+--------------+--------------+-----+
+|     0 | MOV t0, 100  |   ----       |   ----       |   ----       |   ----       |   |
+| 1     | MOV t6, 110  | MOV t0, 100  |   ----       |   ----       |   ----       |   |
+| 2     | MOV s0, 0    | MOV t6, 110  | MOV t0, 100  |   ----       |   ----       |   |
+| 3     | MOV t1, 5    | MOV s0, 0    | MOV t6, 110  | MOV t0, 100  |   ----       |   |
+| 4     | SW t1, 0(t0) | MOV t1, 5    | MOV s0, 0    | MOV t6, 110  | MOV t0, 100  |   |
+| 5     | MOV t1, 0    | SW t1, 0(t0) | MOV t1, 5    | MOV s0, 0    | MOV t6, 110  |   |
+| 6     | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) | MOV t1, 5    | MOV s0, 0    |   |
+| 7     | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) | MOV t1, 5    |   |
+| 8     | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 9     | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 10    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 11    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 12    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 13    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 14    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 15    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 16    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       | S |
+| 17    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   ----       |   |
+| 18    | MOV t1, 8    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    | SW t1, 0(t0) |   |
+| 19    | SW t1, 3(t0) | MOV t1, 8    | SW t1, 2(t0) | SW t1, 1(t0) | MOV t1, 0    |   |
+| 20    | MOV t1, 0    | SW t1, 3(t0) | MOV t1, 8    | SW t1, 2(t0) | SW t1, 1(t0) |   |
+| 21    | SW t1, 4(t0) | MOV t1, 0    | SW t1, 3(t0) | MOV t1, 8    | SW t1, 2(t0) |   |
+| 22    | MOV t1, 12   | SW t1, 4(t0) | MOV t1, 0    | SW t1, 3(t0) | MOV t1, 8    |   |
+| 23    | SW t1, 5(t0) | MOV t1, 12   | SW t1, 4(t0) | MOV t1, 0    | SW t1, 3(t0) |   |
+| 24    | MOV t1, 0    | SW t1, 5(t0) | MOV t1, 12   | SW t1, 4(t0) | MOV t1, 0    |   |
+| 25    | SW t1, 6(t0) | MOV t1, 0    | SW t1, 5(t0) | MOV t1, 12   | SW t1, 4(t0) |   |
+| 26    | SW t1, 7(t0) | SW t1, 6(t0) | MOV t1, 0    | SW t1, 5(t0) | MOV t1, 12   |   |
+| 27    | MOV t1, 3    | SW t1, 7(t0) | SW t1, 6(t0) | MOV t1, 0    | SW t1, 5(t0) |   |
+| 28    | SW t1, 8(t0) | MOV t1, 3    | SW t1, 7(t0) | SW t1, 6(t0) | MOV t1, 0    |   |
+| 29    | MOV t1, 7    | SW t1, 8(t0) | MOV t1, 3    | SW t1, 7(t0) | SW t1, 6(t0) |   |
+| 30    | SW t1, 9(t0) | MOV t1, 7    | SW t1, 8(t0) | MOV t1, 3    | SW t1, 7(t0) |   |
+| 31    | MOV t1, 99   | SW t1, 9(t0) | MOV t1, 7    | SW t1, 8(t0) | MOV t1, 3    |   |
+| 32    | SW t1, 10(.. | MOV t1, 99   | SW t1, 9(t0) | MOV t1, 7    | SW t1, 8(t0) |   |
+| 33    | MOV t0, 100  | SW t1, 10(.. | MOV t1, 99   | SW t1, 9(t0) | MOV t1, 7    |   |
+| 34    | BEQ t0, t6.. | MOV t0, 100  | SW t1, 10(.. | MOV t1, 99   | SW t1, 9(t0) |   |
+| 35    | LNZ t1, 0(.. | BEQ t0, t6.. | MOV t0, 100  | SW t1, 10(.. | MOV t1, 99   |   |
+| 36    | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | MOV t0, 100  | SW t1, 10(.. |   |
+| 37    | JMP loop     | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | MOV t0, 100  |   |
+| 38    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. | BEQ t0, t6.. | S |
+| 39    | VLOAD v0, .. | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   |
+| 40    | HALT         | VLOAD v0, .. | JMP loop     | ADD s0, s0.. |   ----       |   |
+| 41    | LNZ t1, 0(.. | BEQ t0, t6.. |   ----       |   ----       | ADD s0, s0.. |   |
+| 42    | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. |   ----       |   ----       |   |
+| 43    | JMP loop     | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. |   ----       |   |
+| 44    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. | BEQ t0, t6.. | S |
+| 45    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 46    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 47    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 48    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 49    | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   |
+| 50    | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       |   |
+| 51    | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   |
+| 52    | JMP loop     | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     |   |
+| 53    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. | BEQ t0, t6.. | S |
+| 54    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 55    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 56    | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   |
+| 57    | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       |   |
+| 58    | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   |
+| 59    | JMP loop     | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     |   |
+| 60    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. | BEQ t0, t6.. | S |
+| 61    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 62    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 63    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 64    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   ----       | S |
+| 65    | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   |
+| 66    | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       |   |
+| 67    | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   |
+| 68    | JMP loop     | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     |   |
+| 69    | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. | BEQ t0, t6.. | S |
+| 70    | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       | LNZ t1, 0(.. |   |
+| 71    | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   ----       |   |
+| 72    | ADD s0, s0.. | LNZ t1, 0(.. | BEQ t0, t6.. | JMP loop     | ADD s0, s0.. |   |
+| 73    | HALT         | VLOAD v0, .. |   ----       |   ----       | JMP loop     |   |
+| 74    | HALT         | HALT         | VLOAD v0, .. |   ----       |   ----       |   |
+| 75    | HALT         | HALT         | HALT         | VLOAD v0, .. |   ----       |   |
+| 76    | HALT         | HALT         | HALT         | HALT         | VLOAD v0, .. |   |
+| 77    | HALT         | HALT         | HALT         | HALT         | HALT         |   |
++-------+--------------+--------------+--------------+--------------+--------------+-----+
+Legend: S = Stall, F = Flush, ---- = Bubble
+Total Cycles: 78

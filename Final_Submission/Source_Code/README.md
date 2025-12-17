@@ -36,29 +36,93 @@
 └── run_tests.py         # Automated test runner
 ```
 
-## Building and Running
 
-### Prerequisites
-- C++17 Compiler (GCC/Clang/MSVC)
-- CMake
+## Step-by-Step Guide: Building and Running SparseFlow from Scratch
 
-### Build
+### 1. Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **C++17 Compiler**: GCC (Linux), Clang (macOS), or MSVC (Windows)
+- **CMake**: For cross-platform build configuration
+- **Python 3.x**: For running test scripts (optional, for automated tests)
+
+#### Windows Setup
+1. Install [MinGW-w64](https://www.mingw-w64.org/) or [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+2. Install [CMake](https://cmake.org/download/).
+3. Add compiler and CMake to your system PATH.
+
+#### Linux/macOS Setup
+1. Install build tools:
+	- **Ubuntu/Debian**: `sudo apt update && sudo apt install build-essential cmake python3`
+	- **Fedora**: `sudo dnf install gcc-c++ make cmake python3`
+	- **macOS**: Install Xcode Command Line Tools (`xcode-select --install`) and [Homebrew](https://brew.sh/), then `brew install cmake python3`.
+
+### 2. Clone or Download the Project
+
+If you received a ZIP, extract it. If using git:
 ```bash
-mkdir build
-cd build
-cmake ..
-make
+git clone <repo-url>
+cd SimASP
 ```
 
-### Run Simulator
+### 3. Build the Simulator
+
+1. Open a terminal (or PowerShell on Windows) in the project root directory.
+2. Create a build directory and configure the project:
+	```bash
+	mkdir build
+	cd build
+	cmake ..
+	```
+3. Compile the project:
+	- **Linux/macOS**: `make`
+	- **Windows (MinGW)**: `mingw32-make`
+	- **Windows (MSVC)**: Open the generated `.sln` in Visual Studio and build, or use `cmake --build .`
+
+4. The executable (`simulator` or `simulator.exe`) will be created in the `build` directory.
+
+### 4. Run the Simulator
+
+To run a benchmark or test program:
 ```bash
-./simulator benchmarks/sparse_sum.asm
+./simulator ../benchmarks/sparse_sum.asm
+```
+Or, for Windows:
+```powershell
+simulator.exe ..\benchmarks\sparse_sum.asm
 ```
 
-### Run Tests
+#### Command-Line Options
+- `--single-cycle` : Run in single-cycle (non-pipelined) mode
+- `--show-pipeline` : Display ASCII pipeline diagram after execution
+- `--interactive` : Step-by-step interactive mode
+- `--help` : Show usage information
+
+Example:
 ```bash
-python run_tests.py
+./simulator ../benchmarks/sparse_sum.asm --show-pipeline
 ```
+
+### 5. Run Automated Tests (Optional)
+
+To run all test cases and verify correctness:
+```bash
+python ../run_tests.py
+```
+
+### 6. Output Files
+- `pipeline_trace.csv` : Cycle-by-cycle trace of pipeline execution
+- `test_results.txt` : Test results summary
+
+### 7. Troubleshooting
+- Ensure all dependencies are installed and available in your PATH.
+- If you encounter build errors, check your compiler version (must support C++17).
+- For Windows, use the correct generator in CMake if using MSVC or MinGW.
+
+---
+
+This guide ensures you can build and run the SparseFlow simulator on any major platform from scratch. For further details, see the documentation files in the repository.
 
 ## Performance Metrics
 The simulator outputs a detailed report including:

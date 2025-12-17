@@ -68,7 +68,9 @@ Opcode Loader::parseOpcode(string op_str) {
     if (op_str == "LW") return LW;
     if (op_str == "SW") return SW;
     if (op_str == "BEQ") return BEQ;
+    if (op_str == "BNE") return BNE;
     if (op_str == "SLT") return SLT;
+    if (op_str == "SLTI") return SLTI;
     if (op_str == "ADDI") return ADDI;
     if (op_str == "JR") return JR;
     if (op_str == "LNZ") return LNZ;
@@ -149,8 +151,8 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
                 instr.rs2 = parseRegister(tokens[2]);
             }
         }
-        // I-Type: OP rd, rs1, imm (ADDI)
-        else if (instr.op == ADDI) {
+        // I-Type: OP rd, rs1, imm (ADDI, SLTI)
+        else if (instr.op == ADDI || instr.op == SLTI) {
              if (tokens.size() >= 3) {
                 instr.rd = parseRegister(tokens[0]);
                 instr.rs1 = parseRegister(tokens[1]);
@@ -211,15 +213,15 @@ vector<Instruction> Loader::loadFromFile(const string& filename) {
                 }
             }
         }
-        // Branch: OP rs1, rs2, label (BEQ)
-        else if (instr.op == BEQ) {
+        // Branch: OP rs1, rs2, label (BEQ, BNE)
+        else if (instr.op == BEQ || instr.op == BNE) {
             if (tokens.size() >= 3) {
                 instr.rs1 = parseRegister(tokens[0]);
                 instr.rs2 = parseRegister(tokens[1]);
                 string label = tokens[2];
                 if (label_map.count(label)) {
                     instr.imm = label_map[label] - pc_map[i]; // Relative Offset
-                    // cout << " [Loader] BEQ at PC " << pc_map[i] << " to Label " << label << " (PC " << label_map[label] << ") -> Offset " << instr.imm << endl;
+                    // cout << " [Loader] Branch at PC " << pc_map[i] << " to Label " << label << " (PC " << label_map[label] << ") -> Offset " << instr.imm << endl;
                 } else {
                     try { instr.imm = stoi(label); } catch(...) { instr.imm = 0; }
                 }
